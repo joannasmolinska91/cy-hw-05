@@ -1,0 +1,39 @@
+config:
+  target: "https://api.chucknorris.io"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+  metrics:
+    - name: "latency"
+      interval: 1
+      percentiles:
+        - 95
+        - 99
+    - name: "statusCode"
+    - name: "requestCount"
+scenarios:
+  - name: "Chuck Norris Jokes API Test"
+    flow:
+      - get:
+          url: "/jokes/random"
+          name: "Chuck Norris Random Joke"
+      - post:
+          url: "/jokes/search"
+          name: "Chuck Norris Joke Search"
+          payload:
+            file: "./search_payload.json"
+    validate:
+      - expect:
+          statusCode: 200
+          jsonPath: "$.total"
+          toEqual: 1
+      - expect:
+          statusCode: 200
+          jsonPath: "$.result[0].value"
+          toContain: "Chuck Norris"
+      - expect:
+          latency:
+            p95:
+              lte: 500
+            p99:
+              lte: 1000
